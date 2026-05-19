@@ -10,8 +10,13 @@
   <meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | truncatewords: 30 }}{% else %}{{ site.description }}{% endif %}">
   <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
   <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:image" content="{{ '/assets/images/og-image.png' | absolute_url }}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#059669">
   <title>{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
   {% if site.google_analytics %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
@@ -28,22 +33,42 @@
   </script>
 </head>
 <body>
+  <div class="progress-bar" id="progressBar"></div>
+
   <header class="site-header">
-    <div class="container">
+    <div class="container header-inner">
       <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
-      <nav>
+      <nav class="site-nav">
         <a href="{{ '/' | relative_url }}">Inicio</a>
         <a href="{{ '/about/' | relative_url }}">Sobre mi</a>
       </nav>
     </div>
   </header>
-  <main class="container">
-    {{ content }}
-  </main>
-  <footer class="site-footer">
+
+  <main>
     <div class="container">
-      <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. <a href="{{ '/privacidad/' | relative_url }}">Politica de privacidad</a></p>
+      {{ content }}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. Contenido original sin asesoria financiera profesional.</p>
+      <div class="footer-links">
+        <a href="{{ '/privacidad/' | relative_url }}">Privacidad</a>
+        <a href="{{ '/about/' | relative_url }}">Sobre mi</a>
+      </div>
     </div>
   </footer>
+
+  <script>
+    // Reading progress bar
+    window.addEventListener('scroll', function() {
+      var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var scrolled = (winScroll / height) * 100;
+      document.getElementById('progressBar').style.width = scrolled + '%';
+    });
+  </script>
 </body>
 </html>

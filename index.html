@@ -6,15 +6,36 @@ title: Inicio
 <div class="hero">
   <h1>Finanzas Personales para <span class="highlight">Principiantes</span></h1>
   <p class="subtitle">Aprende a administrar tu dinero, salir de deudas y construir un futuro financiero solido. Guias practicas sin jerga complicada.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">{{ site.posts | size }}+</div>
+      <div class="label">Articulos</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">100%</div>
+      <div class="label">Gratis</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">0$</div>
+      <div class="label">Inversion inicial</div>
+    </div>
+  </div>
 </div>
 
 <div class="posts-list">
   {% for post in paginator.posts %}
   <article class="post-card">
     <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
-    <p class="post-meta">{{ post.date | date: "%d/%m/%Y" }} {% if post.categories %} | {{ post.categories | join: ', ' }}{% endif %}</p>
-    <p>{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
-    <a href="{{ post.url | relative_url }}" class="read-more">Leer mas &rarr;</a>
+    <div class="post-meta">
+      <span>{{ post.date | date: "%d/%m/%Y" }}</span>
+      {% if post.categories %}
+        {% for cat in post.categories %}
+          <span class="tag">{{ cat }}</span>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <p>{{ post.excerpt | strip_html | truncatewords: 35 }}</p>
+    <a href="{{ post.url | relative_url }}" class="read-more">Leer articulo &rarr;</a>
   </article>
   {% endfor %}
 </div>
