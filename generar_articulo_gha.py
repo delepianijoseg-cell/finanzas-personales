@@ -29,13 +29,9 @@ TEMAS = [
     "Como automatizar tus finanzas personales",
 ]
 
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URLS = [
-    "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent",
-    "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
-    "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-]
+GH_MODEL = "gpt-4o-mini"
+GH_URL = "https://models.inference.ai.azure.com/chat/completions"
+GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 def slugify(text):
@@ -46,31 +42,26 @@ def slugify(text):
     return text[:80].rstrip("-")
 
 
-def gemini_generate(prompt):
+def gh_generate(system_prompt, user_prompt):
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192, "topP": 0.95},
+        "model": GH_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.7,
+        "max_tokens": 4096,
     }
-    last_error = None
-    for url in GEMINI_URLS:
-        try:
-            resp = requests.post(f"{url}?key={GEMINI_KEY}", json=payload, timeout=180)
-            print(f"  Gemini {url.split('/models/')[1].split(':')[0]}: status={resp.status_code}", flush=True)
-            if resp.status_code == 200:
-                data = resp.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                    if text.strip():
-                        return text.strip()
-                print(f"  Unexpected response: {str(data)[:200]}", flush=True)
-            else:
-                print(f"  Error: {resp.text[:150]}", flush=True)
-                last_error = f"HTTP {resp.status_code}: {resp.text[:100]}"
-        except Exception as e:
-            print(f"  Exception: {e}", flush=True)
-            last_error = str(e)
-    raise Exception(f"All Gemini models failed. Last error: {last_error}")
+    headers = {
+        "Authorization": f"Bearer {GH_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(GH_URL, headers=headers, json=payload, timeout=180)
+    if resp.status_code != 200:
+        raise Exception(f"GitHub Models error {resp.status_code}: {resp.text[:200]}")
+    data = resp.json()
+    text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+    return text.strip()
 
 
 # Select theme deterministically by week
@@ -81,11 +72,8 @@ tema = random.choice(TEMAS)
 print(f"Tema: {tema}")
 
 # Generate title
-title_prompt = (
-    "Generate ONLY a catchy Spanish title (max 12 words) for a blog post about: "
-    f"{tema}. No quotes, no prefixes, no explanations."
-)
-raw_title = gemini_generate(title_prompt)
+title_prompt = f"Generate ONLY a catchy Spanish title (max 12 words) for a blog post about: {tema}. No quotes, no prefixes, no explanations."
+raw_title = gh_generate("Eres un escritor experto en finanzas.", title_prompt)
 title = raw_title.strip().strip("\"'")
 if len(title.split()) < 3:
     title = tema
@@ -97,11 +85,7 @@ today = datetime.now()
 fecha = today.strftime("%Y-%m-%d")
 filename = f"_posts/{fecha}-{slug}.md"
 
-article_prompt = f"""Eres un escritor experto en finanzas personales. Escribe un articulo completo en espanol.
-
-Titulo: {title}
-
-Estructura:
+article_prompt = f"""Estructura:
 1. INTRODUCCION (250-300 palabras) - Engancha al lector sobre {tema}
 2. IMPORTANCIA (200-250 palabras) - Por que las finanzas personales importan hoy
 3. PRESUPUESTO 50/30/20 (250-300 palabras) - Explica el metodo con ejemplos
@@ -121,7 +105,10 @@ Incluye EXACTAMENTE estas frases en el texto (distribuidas naturalmente):
 Escribe SOLO el articulo completo, sin explicaciones adicionales."""
 
 print("Generando articulo...")
-article = gemini_generate(article_prompt)
+article = gh_generate(
+    f"Eres un escritor experto en finanzas personales. Escribe un articulo completo en espanol. Titulo: {title}",
+    article_prompt,
+)
 word_count = len(article.split())
 print(f"Palabras: {word_count}")
 
@@ -144,7 +131,7 @@ description: "Articulo automatizado sobre {tema.lower()}."
 {article}
 
 ---
-*Este articulo contiene enlaces de afiliado. Si compras a traves de ellos, recibo una comision sin costo adicional para ti.*
+*Este articulo contiene enlaces de afiliado. Si compras a traves de ellos, recibo una comision sin costo adicional para tu.*
 """)
 
 print(f"Articulo guardado: {filename}")

@@ -1,9 +1,11 @@
 name: Generar articulo semanal
-# v2: fallback models + debug output
+# v3: GitHub Models API (gpt-4o-mini)
 on:
   schedule:
     - cron: "0 12 * * 1"
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -13,9 +15,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Generar articulo con Hugging Face API
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Generar articulo con GitHub Models API
         run: |
           pip install requests
           python generar_articulo_gha.py
