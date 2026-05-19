@@ -1,4 +1,5 @@
 name: Generar articulo semanal
+# v2: fallback models + debug output
 on:
   schedule:
     - cron: "0 12 * * 1"
