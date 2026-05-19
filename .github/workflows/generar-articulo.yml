@@ -1,8 +1,5 @@
-name: Generar articulo semanal
-# v3: GitHub Models API (gpt-4o-mini)
+name: Generar articulo semanal (DISABLED - usa pipeline local)
 on:
-  schedule:
-    - cron: "0 12 * * 1"
   workflow_dispatch:
 permissions:
   contents: write
