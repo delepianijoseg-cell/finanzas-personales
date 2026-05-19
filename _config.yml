@@ -3,7 +3,7 @@ description: Guias practicas y consejos para tomar el control de tu dinero. Apre
 url: "https://delepianijoseg-cell.github.io"
 baseurl: "/finanzas-personales"
 lang: es
-timezone: America/Mexico_City
+timezone: America/Sao_Paulo
 
 author:
   name: Admin Financiero
@@ -32,7 +32,7 @@ defaults:
       layout: "default"
 
 # Google Analytics
-google_analytics: G-XXXXXXXXXX
+google_analytics: G-X22M9MQ1W3
 
 # Exclude
 exclude:
