@@ -29,12 +29,8 @@ TEMAS = [
     "Como automatizar tus finanzas personales",
 ]
 
-API_URLS = [
-    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
-    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
-    "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct",
-]
-HEADERS = {"Authorization": f"Bearer {os.environ.get('HF_TOKEN', '')}"}
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
 
 
 def slugify(text):
@@ -45,27 +41,20 @@ def slugify(text):
     return text[:80].rstrip("-")
 
 
-def hf_generate(prompt, max_tokens=1024):
-    last_error = None
-    for url in API_URLS:
-        try:
-            payload = {"inputs": prompt, "parameters": {"max_new_tokens": max_tokens, "temperature": 0.7}}
-            resp = requests.post(url, headers=HEADERS, json=payload, timeout=120)
-            print(f"  API {url}: status={resp.status_code}", flush=True)
-            if resp.status_code == 200:
-                data = resp.json()
-                if isinstance(data, list) and "generated_text" in data[0]:
-                    return data[0]["generated_text"].replace(prompt, "").strip()
-                if isinstance(data, dict) and "generated_text" in data:
-                    return data["generated_text"].replace(prompt, "").strip()
-                print(f"  Unexpected response format: {str(data)[:200]}", flush=True)
-            else:
-                print(f"  Response: {resp.text[:200]}", flush=True)
-                last_error = f"HTTP {resp.status_code}: {resp.text[:100]}"
-        except Exception as e:
-            print(f"  Error with {url}: {e}", flush=True)
-            last_error = str(e)
-    raise Exception(f"All APIs failed. Last error: {last_error}")
+def gemini_generate(prompt):
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192, "topP": 0.95},
+    }
+    resp = requests.post(f"{GEMINI_URL}?key={GEMINI_KEY}", json=payload, timeout=180)
+    if resp.status_code != 200:
+        raise Exception(f"Gemini API error {resp.status_code}: {resp.text[:200]}")
+    data = resp.json()
+    candidates = data.get("candidates", [])
+    if not candidates:
+        raise Exception(f"Gemini: no candidates. Response: {str(data)[:200]}")
+    text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+    return text.strip()
 
 
 # Select theme deterministically by week
@@ -80,7 +69,7 @@ title_prompt = (
     "Generate ONLY a catchy Spanish title (max 12 words) for a blog post about: "
     f"{tema}. No quotes, no prefixes, no explanations."
 )
-raw_title = hf_generate(title_prompt, max_tokens=50)
+raw_title = gemini_generate(title_prompt)
 title = raw_title.strip().strip("\"'")
 if len(title.split()) < 3:
     title = tema
@@ -116,7 +105,7 @@ Incluye EXACTAMENTE estas frases en el texto (distribuidas naturalmente):
 Escribe SOLO el articulo completo, sin explicaciones adicionales."""
 
 print("Generando articulo...")
-article = hf_generate(article_prompt, max_tokens=3072)
+article = gemini_generate(article_prompt)
 word_count = len(article.split())
 print(f"Palabras: {word_count}")
 

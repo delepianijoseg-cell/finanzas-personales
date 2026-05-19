@@ -15,7 +15,7 @@ jobs:
           python-version: "3.12"
       - name: Generar articulo con Hugging Face API
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           pip install requests
           python generar_articulo_gha.py
