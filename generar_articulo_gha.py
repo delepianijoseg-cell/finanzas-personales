@@ -29,7 +29,11 @@ TEMAS = [
     "Como automatizar tus finanzas personales",
 ]
 
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+API_URLS = [
+    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
+    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+    "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct",
+]
 HEADERS = {"Authorization": f"Bearer {os.environ.get('HF_TOKEN', '')}"}
 
 
@@ -42,12 +46,26 @@ def slugify(text):
 
 
 def hf_generate(prompt, max_tokens=1024):
-    payload = {"inputs": prompt, "parameters": {"max_new_tokens": max_tokens, "temperature": 0.7}}
-    resp = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
-    data = resp.json()
-    if isinstance(data, list) and "generated_text" in data[0]:
-        return data[0]["generated_text"].replace(prompt, "").strip()
-    raise Exception(f"API error: {data}")
+    last_error = None
+    for url in API_URLS:
+        try:
+            payload = {"inputs": prompt, "parameters": {"max_new_tokens": max_tokens, "temperature": 0.7}}
+            resp = requests.post(url, headers=HEADERS, json=payload, timeout=120)
+            print(f"  API {url}: status={resp.status_code}", flush=True)
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list) and "generated_text" in data[0]:
+                    return data[0]["generated_text"].replace(prompt, "").strip()
+                if isinstance(data, dict) and "generated_text" in data:
+                    return data["generated_text"].replace(prompt, "").strip()
+                print(f"  Unexpected response format: {str(data)[:200]}", flush=True)
+            else:
+                print(f"  Response: {resp.text[:200]}", flush=True)
+                last_error = f"HTTP {resp.status_code}: {resp.text[:100]}"
+        except Exception as e:
+            print(f"  Error with {url}: {e}", flush=True)
+            last_error = str(e)
+    raise Exception(f"All APIs failed. Last error: {last_error}")
 
 
 # Select theme deterministically by week
