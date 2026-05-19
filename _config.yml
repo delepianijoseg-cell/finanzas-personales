@@ -1,0 +1,42 @@
+title: Finanzas Personales para Principiantes
+description: Guias practicas y consejos para tomar el control de tu dinero. Aprende a presupuestar, ahorrar e invertir desde cero.
+url: "https://delepianijoseg-cell.github.io/finanzas-personales"
+baseurl: "/finanzas-personales"
+lang: es
+timezone: America/Mexico_City
+
+author:
+  name: Admin Financiero
+  twitter: 
+
+markdown: kramdown
+permalink: /:title/
+paginate: 10
+paginate_path: "/page/:num/"
+
+plugins:
+  - jekyll-paginate
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Admin Financiero"
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+# Google Analytics
+google_analytics: G-XXXXXXXXXX
+
+# Exclude
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor

@@ -1,0 +1,13 @@
+---
+layout: default
+---
+<article class="post">
+  <h1>{{ page.title }}</h1>
+  <p class="post-meta">{{ page.date | date: "%d/%m/%Y" }} | {{ page.categories | join: ', ' }}</p>
+  <div class="post-content">
+    {{ content }}
+  </div>
+  <div class="post-share">
+    <p>¿Te ayudo este articulo? <a href="https://twitter.com/intent/tweet?text={{ page.title | url_encode }}&url={{ page.url | absolute_url | url_encode }}" target="_blank">Compartelo en Twitter</a></p>
+  </div>
+</article>
