@@ -3,25 +3,21 @@ on:
   schedule:
     - cron: "0 12 * * 1"
   workflow_dispatch:
-
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Generar articulo con Hugging Face API
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           pip install requests
           python generar_articulo_gha.py
-
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
