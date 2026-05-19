@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /assets/
+Disallow: /vendor/
+
+Sitemap: https://delepianijoseg-cell.github.io/finanzas-personales/sitemap.xml

@@ -1,6 +1,38 @@
 ---
 layout: default
 ---
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ page.title | jsonify }},
+  "description": {{ page.description | default: page.excerpt | strip_html | truncatewords: 30 | jsonify }},
+  "datePublished": "{{ page.date | date: '%Y-%m-%d' }}",
+  "author": {
+    "@type": "Person",
+    "name": {{ page.author | default: site.author.name | jsonify }}
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ site.title | jsonify }},
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ '/assets/images/og-image.png' | absolute_url }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ page.url | absolute_url }}"
+  }
+}
+</script>
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ '/' | relative_url }}">Inicio</a>
+  <span>&rsaquo;</span>
+  <span>{{ page.title | truncate: 50 }}</span>
+</nav>
+
 <article class="post">
   <div class="post-header">
     <h1>{{ page.title }}</h1>
@@ -16,7 +48,7 @@ layout: default
   </div>
 
   <div class="toc" id="toc">
-    <h3>📑 Contenido</h3>
+    <h3>Contenido</h3>
     <div id="tocList"></div>
   </div>
 
@@ -29,27 +61,40 @@ layout: default
   </div>
 
   <div class="cta-box">
-    <h3>💚 ¿Te ayudo este articulo?</h3>
+    <h3>¿Te ayudo este articulo?</h3>
     <p>Compartelo con alguien que tambien quiera tomar el control de sus finanzas.</p>
     <a href="{{ '/' | relative_url }}" class="btn">Ver mas articulos</a>
   </div>
 
+  {% assign related = site.posts | where_exp: "p", "p.url != page.url" | where_exp: "p", "p.categories contains page.categories[0]" | limit: 3 %}
+  {% if related.size > 0 %}
+  <div class="related-posts">
+    <h3>Articulos relacionados</h3>
+    <div class="related-grid">
+      {% for r in related %}
+      <a href="{{ r.url | relative_url }}" class="related-card">
+        <span class="related-date">{{ r.date | date: "%d/%m/%Y" }}</span>
+        <h4>{{ r.title }}</h4>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <div class="post-share">
-    <p>Compartir:</p>
-    <a href="https://twitter.com/intent/tweet?text={{ page.title | url_encode }}&url={{ page.url | absolute_url | url_encode }}" target="_blank" rel="noopener" class="share-btn twitter">X (Twitter)</a>
+    <p>Compartir</p>
+    <a href="https://twitter.com/intent/tweet?text={{ page.title | url_encode }}&url={{ page.url | absolute_url | url_encode }}" target="_blank" rel="noopener" class="share-btn twitter">X</a>
     <a href="https://wa.me/?text={{ page.title | url_encode }}%20{{ page.url | absolute_url | url_encode }}" target="_blank" rel="noopener" class="share-btn whatsapp">WhatsApp</a>
-    <button class="share-btn copy" onclick="navigator.clipboard.writeText('{{ page.url | absolute_url }}');this.textContent='Copiado!'">Copiar link</button>
+    <button class="share-btn copy" onclick="navigator.clipboard.writeText('{{ page.url | absolute_url }}');this.textContent='Copiado!'">Copiar</button>
   </div>
 </article>
 
 <script>
-  // Reading time
   var text = document.getElementById('postContent').innerText;
   var words = text.split(/\s+/).length;
   var min = Math.max(1, Math.round(words / 200));
-  document.getElementById('readingTime').textContent = min + ' min de lectura';
+  document.getElementById('readingTime').textContent = min + ' min lectura';
 
-  // Table of contents
   var headings = document.querySelectorAll('#postContent h2');
   var tocList = document.getElementById('tocList');
   if (headings.length > 0) {
