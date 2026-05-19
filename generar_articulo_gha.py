@@ -30,7 +30,12 @@ TEMAS = [
 ]
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_URLS = [
+    "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+]
 
 
 def slugify(text):
@@ -46,15 +51,26 @@ def gemini_generate(prompt):
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192, "topP": 0.95},
     }
-    resp = requests.post(f"{GEMINI_URL}?key={GEMINI_KEY}", json=payload, timeout=180)
-    if resp.status_code != 200:
-        raise Exception(f"Gemini API error {resp.status_code}: {resp.text[:200]}")
-    data = resp.json()
-    candidates = data.get("candidates", [])
-    if not candidates:
-        raise Exception(f"Gemini: no candidates. Response: {str(data)[:200]}")
-    text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-    return text.strip()
+    last_error = None
+    for url in GEMINI_URLS:
+        try:
+            resp = requests.post(f"{url}?key={GEMINI_KEY}", json=payload, timeout=180)
+            print(f"  Gemini {url.split('/models/')[1].split(':')[0]}: status={resp.status_code}", flush=True)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    if text.strip():
+                        return text.strip()
+                print(f"  Unexpected response: {str(data)[:200]}", flush=True)
+            else:
+                print(f"  Error: {resp.text[:150]}", flush=True)
+                last_error = f"HTTP {resp.status_code}: {resp.text[:100]}"
+        except Exception as e:
+            print(f"  Exception: {e}", flush=True)
+            last_error = str(e)
+    raise Exception(f"All Gemini models failed. Last error: {last_error}")
 
 
 # Select theme deterministically by week
