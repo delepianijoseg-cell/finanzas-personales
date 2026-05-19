@@ -9,68 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
-      - name: Generar articulo
+
+      - name: Generar articulo con Hugging Face API
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           pip install requests
-          
-          python -c "
-import requests, json, os
-from datetime import datetime
+          python generar_articulo_gha.py
 
-TITLE = 'Guia Completa de Finanzas Personales para Principiantes'
-API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3'
-HEADERS = {'Authorization': f'Bearer {os.environ.get(\"HF_TOKEN\", \"\")}'}
-
-prompt = '''Eres un escritor experto en finanzas personales. Escribe un articulo completo en espanol.
-Titulo: Como Ahorrar Dinero en 2025: Guia Practica para Principiantes
-
-Estructura:
-1. Introduccion (150 palabras)
-2. Por que ahorrar es mas dificil hoy (200 palabras)
-3. 5 metodos de ahorro comprobados (500 palabras)
-4. Errores comunes al ahorrar (200 palabras)
-5. Herramientas recomendadas (150 palabras)
-6. Conclusion (100 palabras)
-
-Incluye esta frase exacta en el texto: te recomiendo llevar un registro con esta [plantilla de presupuesto](https://amzn.to/4cV3nFg)
-Incluye esta frase exacta en el texto: El libro [Padre Rico Padre Pobre](https://amzn.to/4aXy2Kp) es un excelente punto de partida
-Incluye esta frase exacta en el texto: Una [calculadora financiera basica](https://amzn.to/4dE5hRj) puede ayudarte a proyectar tus ahorros
-
-Escribe SOLO el articulo, sin explicaciones adicionales.'''
-
-      response = requests.post(API_URL, headers=HEADERS, json={'inputs': prompt, 'parameters': {'max_new_tokens': 2048, 'temperature': 0.7}}, timeout=120)
-      article = response.json()[0]['generated_text'].replace(prompt, '').strip()
-      
-      today = datetime.now()
-      filename = f'_posts/{today.strftime(\"%Y-%m-%d\")}-como-ahorrar-dinero-2025.md'
-      
-      with open(filename, 'w', encoding='utf-8') as f:
-          f.write(f'''---
-layout: post
-title: \"Como Ahorrar Dinero en 2025: Guia Practica para Principiantes\"
-date: {today.strftime(\"%Y-%m-%d\")}
-categories: [ahorro, finanzas personales]
-tags: [ahorrar dinero, metodos de ahorro, presupuesto]
----
-
-{article}
-
----
-*Este articulo contiene enlaces de afiliado. Si compras a traves de ellos, recibo una comision sin costo adicional para ti.*
-''')
-      
-      print(f'Articulo generado: {filename}')
-      print(f'Palabras: {len(article.split())}')
-"
-      
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
