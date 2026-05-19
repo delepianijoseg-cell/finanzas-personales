@@ -61,6 +61,8 @@
     </div>
   </footer>
 
+  <button id="backToTop" title="Volver arriba">↑</button>
+
   <script>
     // Reading progress bar
     window.addEventListener('scroll', function() {
@@ -68,6 +70,10 @@
       var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       var scrolled = (winScroll / height) * 100;
       document.getElementById('progressBar').style.width = scrolled + '%';
+      document.getElementById('backToTop').classList.toggle('visible', winScroll > 400);
+    });
+    document.getElementById('backToTop').addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   </script>
 </body>

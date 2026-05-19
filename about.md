@@ -3,7 +3,7 @@ layout: default
 title: Sobre mi
 ---
 
-<div class="post" style="max-width:640px">
+<div class="page-content" style="max-width:640px">
   <div class="post-header">
     <h1>Sobre este blog</h1>
   </div>
